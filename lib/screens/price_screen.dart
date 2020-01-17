@@ -29,6 +29,7 @@ class _PriceScreenState extends State<PriceScreen> {
   var litecoinData;
 
   bool isLoading = true;
+  bool isError = false;
 
   void initState() {
     super.initState();
@@ -39,6 +40,7 @@ class _PriceScreenState extends State<PriceScreen> {
     setState(() {
       isLoading = true;
     });
+
     bitcoinData =
         await ExchangeRateHelper().getBitcoinDataBySymbol(selectedCurrency);
     ethereumData =
@@ -51,15 +53,21 @@ class _PriceScreenState extends State<PriceScreen> {
 
   void updateUI() {
     setState(() {
-      bitcoinVal = currencyFormatter
-          .format(double.parse('${bitcoinData['last']}'))
-          .toString();
-      ethereumVal = currencyFormatter
-          .format(double.parse('${ethereumData['last']}'))
-          .toString();
-      litecoinVal = currencyFormatter
-          .format(double.parse('${litecoinData['last']}'))
-          .toString();
+      if (bitcoinData != null) {
+        isError = false;
+        bitcoinVal = currencyFormatter
+            .format(double.parse('${bitcoinData['last']}'))
+            .toString();
+        ethereumVal = currencyFormatter
+            .format(double.parse('${ethereumData['last']}'))
+            .toString();
+        litecoinVal = currencyFormatter
+            .format(double.parse('${litecoinData['last']}'))
+            .toString();
+      } else {
+        isError = true;
+      }
+
       isLoading = false;
     });
   }
@@ -340,7 +348,17 @@ class _PriceScreenState extends State<PriceScreen> {
           )
         ],
       ),
-      body: _buildBodyStack(),
+      body: !isError
+          ? _buildBodyStack()
+          : Container(
+              padding: EdgeInsets.all(8.0),
+              child: Center(
+                child: Text(
+                  'Cannot connect to the BitcoinAverage API. Please make sure you have an internet connection, or that your network allows connection to the API.',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
     );
   }
 }
